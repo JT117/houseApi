@@ -32,6 +32,17 @@ open class HouseRestApi {
     private lateinit var API_KEY: String
 
     /**
+     * Health Check
+     */
+    @RequestMapping(value = ["/healthCheck"], method = [(RequestMethod.GET)])
+    internal fun healthCheck(@RequestParam(value = "key") key: String) : ResponseEntity<Any>{
+        return when(API_KEY){
+            key -> ResponseEntity(HttpStatus.OK)
+            else -> ResponseEntity(HttpStatus.NOT_FOUND)
+        }
+    }
+
+    /**
      * Insert a new meter reading in the database
      */
     @RequestMapping(value = ["/meterReading"], method = [(RequestMethod.POST)])
