@@ -20,3 +20,4 @@ out
 gradle
 *.iml
 target/*
+dependency-reduced-pom.xml

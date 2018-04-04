@@ -114,7 +114,7 @@ open class HouseRestApi {
 
 
     companion object {
-        @Value("API_KEY")
+        @Value("\${API_KEY}")
         private lateinit var API_KEY: String
 
         @JvmStatic
