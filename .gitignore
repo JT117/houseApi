@@ -18,4 +18,5 @@ gradle-app.setting
 build
 out
 gradle
-.gitignore
+*.iml
+target/*
