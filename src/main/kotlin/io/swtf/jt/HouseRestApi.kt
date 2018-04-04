@@ -28,6 +28,9 @@ open class HouseRestApi {
     @Autowired
     private lateinit var priceRepo: PriceRepo
 
+    @Value("\${API_KEY}")
+    private lateinit var API_KEY: String
+
     /**
      * Insert a new meter reading in the database
      */
@@ -114,9 +117,6 @@ open class HouseRestApi {
 
 
     companion object {
-        @Value("\${API_KEY}")
-        private lateinit var API_KEY: String
-
         @JvmStatic
         fun main(args: Array<String>) {
             SpringApplication.run(HouseRestApi::class.java, *args)
