@@ -4,11 +4,15 @@ import io.swtf.jt.enums.Resource
 
 class GraphData {
 
-    val data: MutableMap< Resource, MutableMap<String, MutableList<String>>> = mutableMapOf()
+    val data: MutableMap<Resource, MutableMap<String, MutableList<String>>> = mutableMapOf()
 
     init {
         Resource.values().forEach {
             data[it] = mutableMapOf()
         }
+    }
+
+    override fun toString(): String {
+        return "GraphData(data=$data)"
     }
 }

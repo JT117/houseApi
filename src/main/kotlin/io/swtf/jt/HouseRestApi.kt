@@ -19,6 +19,9 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.*
 
@@ -221,9 +224,9 @@ open class HouseRestApi {
     }
 
     private fun isBetween(meterReading: MeterReading, end: Date, begin: Date): Boolean {
-        val mrLD = LocalDate.from(meterReading.date.toInstant()).minusMonths(1)
-        val endLD = LocalDate.from(end.toInstant())
-        val beginLD = LocalDate.from(begin.toInstant())
+        val mrLD = LocalDateTime.ofInstant(meterReading.date.toInstant(), ZoneId.systemDefault()).minusMonths(1)
+        val endLD = LocalDateTime.ofInstant(end.toInstant(), ZoneId.systemDefault())
+        val beginLD = LocalDateTime.ofInstant(begin.toInstant(), ZoneId.systemDefault())
 
         return mrLD.isBefore(endLD) && mrLD.isAfter(beginLD)
     }
@@ -235,11 +238,18 @@ open class HouseRestApi {
                 .filter { price -> price.resource == meterReading.resource && price.date.before(meterReading.date) }
                 .maxBy { price -> price.date }?.number ?: 1L
 
-        graphData.data[meterReading.resource]?.get(month)?.add((money * meterReading.number).toString())
+        val mapForResource = graphData.data[meterReading.resource]
+
+        if(mapForResource?.get(month) != null){
+            mapForResource[month]?.add(meterReading.number.toString())
+            mapForResource[month]?.add((money * meterReading.number).toString())
+        }else{
+            mapForResource?.put(month, mutableListOf(meterReading.number.toString(), (money * meterReading.number).toString()))
+        }
     }
 
     private fun fromDateToPreviousMonthName(meterReading: MeterReading) =
-            LocalDate.from(meterReading.date.toInstant()).minusMonths(1).month.getDisplayName(TextStyle.FULL, Locale.FRANCE)
+            LocalDateTime.ofInstant(meterReading.date.toInstant(), ZoneId.systemDefault()).minusMonths(1).month.getDisplayName(TextStyle.FULL, Locale.FRANCE)
 
     companion object {
         val LOGGER: Logger = LoggerFactory.getLogger("HouseApi")
