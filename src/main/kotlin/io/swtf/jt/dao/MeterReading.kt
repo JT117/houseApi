@@ -16,8 +16,8 @@ data class MeterReading(
         val number: Long,
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
         val date: Date
-){
-    constructor(meterReadingDTO: MeterReadingDTO): this(UUID.randomUUID().toString(), meterReadingDTO.resource, meterReadingDTO.unit, meterReadingDTO.number, meterReadingDTO.date)
+) {
+    constructor(meterReadingDTO: MeterReadingDTO) : this(UUID.randomUUID().toString(), meterReadingDTO.resource, meterReadingDTO.unit, meterReadingDTO.number, meterReadingDTO.date)
 }
 
 interface MeterReadingRepo : MongoRepository<MeterReading, String> {

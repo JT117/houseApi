@@ -14,12 +14,12 @@ data class Price(
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
         val date: Date,
         val number: Long
-){
-    constructor(proceDTO: PriceDTO): this(id = UUID.randomUUID().toString(), resource = proceDTO.resource, date = proceDTO.date, number = proceDTO.number)
+) {
+    constructor(proceDTO: PriceDTO) : this(id = UUID.randomUUID().toString(), resource = proceDTO.resource, date = proceDTO.date, number = proceDTO.number)
 }
 
 interface PriceRepo : MongoRepository<Price, String> {
 
-    fun findByDateBetween( begin: Date, end: Date): List<Price>
+    fun findByDateBetween(begin: Date, end: Date): List<Price>
 
 }

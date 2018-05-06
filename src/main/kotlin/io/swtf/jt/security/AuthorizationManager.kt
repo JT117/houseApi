@@ -24,13 +24,13 @@ open class AuthorizationManager {
 
     private val map: MutableMap<String, AuthorizationData> = mutableMapOf()
 
-    fun login(user: String, pass: String, ip: String, userAgent: String): String?{
-        return if(user == username && pass == password){
+    fun login(user: String, pass: String, ip: String, userAgent: String): String? {
+        return if (user == username && pass == password) {
             cleanUp()
             val uuid = UUID.randomUUID().toString()
             addData(uuid, userAgent, ip)
             uuid
-        }else{
+        } else {
             null
         }
     }
@@ -55,15 +55,15 @@ open class AuthorizationManager {
 
     fun isValid(token: String, ip: String, userAgent: String): Boolean {
         val data = searchToken(token)
-        if( data != null ){
-            return data.hash== computeHash(userAgent, ip)
+        if (data != null) {
+            return data.hash == computeHash(userAgent, ip)
         }
         return false
     }
 
-    private fun cleanUp(){
+    private fun cleanUp() {
         val tokenToRemove = map.filter { Duration.between(it.value.insertedAt, Instant.now()).seconds > 3600 }.map { it.key }
-        tokenToRemove.forEach{ map.remove(it) }
+        tokenToRemove.forEach { map.remove(it) }
     }
 
     private fun computeHash(userAgent: String, ip: String) = DatatypeConverter.printHexBinary(messageDigest.digest("$userAgent-$ip".toByteArray())).toUpperCase()

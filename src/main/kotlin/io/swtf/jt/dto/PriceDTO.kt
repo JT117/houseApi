@@ -6,7 +6,7 @@ import java.util.*
 
 data class PriceDTO(val resource: Resource,
                     val date: Date,
-                    val number: Long){
+                    val number: Long) {
 
-    constructor(price: Price): this(price.resource, price.date, price.number)
+    constructor(price: Price) : this(price.resource, price.date, price.number)
 }

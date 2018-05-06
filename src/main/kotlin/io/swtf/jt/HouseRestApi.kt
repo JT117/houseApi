@@ -4,10 +4,7 @@ import io.swtf.jt.dao.MeterReading
 import io.swtf.jt.dao.MeterReadingRepo
 import io.swtf.jt.dao.Price
 import io.swtf.jt.dao.PriceRepo
-import io.swtf.jt.dto.AuthorizationDTO
-import io.swtf.jt.dto.GraphData
-import io.swtf.jt.dto.MeterReadingDTO
-import io.swtf.jt.dto.PriceDTO
+import io.swtf.jt.dto.*
 import io.swtf.jt.security.AuthorizationManager
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -20,7 +17,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.time.format.TextStyle
+import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.servlet.http.HttpServletRequest
 
@@ -42,14 +39,14 @@ open class HouseRestApi {
      * Authenticate a user with an username and password, return a mandatory UUID to call the other method
      */
     @RequestMapping(value = ["/authenticate"], method = [(RequestMethod.POST)])
-    internal fun authenticate(@RequestHeader(value="User-Agent") userAgent: String,
+    internal fun authenticate(@RequestHeader(value = "User-Agent") userAgent: String,
                               @RequestBody authorizationDTO: AuthorizationDTO,
                               request: HttpServletRequest): ResponseEntity<String> {
         val hash = authorizationManager.login(authorizationDTO.username, authorizationDTO.password, request.remoteAddr, userAgent)
 
-        return if (hash != null){
+        return if (hash != null) {
             ResponseEntity(hash, HttpStatus.OK)
-        }else{
+        } else {
             ResponseEntity(HttpStatus.NOT_FOUND)
         }
     }
@@ -58,20 +55,27 @@ open class HouseRestApi {
      * Insert a new meter reading in the database
      */
     @RequestMapping(value = ["/meterReading"], method = [(RequestMethod.POST)])
-    internal fun insertMeterReading(@RequestHeader(value="Authorization") authorization: String,
-                                    @RequestHeader(value="User-Agent") userAgent: String,
+    internal fun insertMeterReading(@RequestHeader(value = "Authorization") authorization: String,
+                                    @RequestHeader(value = "User-Agent") userAgent: String,
                                     @RequestBody meterReadingDTO: MeterReadingDTO,
                                     request: HttpServletRequest): ResponseEntity<MeterReading> {
         return when {
             authorizationManager.isValid(authorization, request.remoteAddr, userAgent) -> {
                 LOGGER.info("insertMeterReading - Received meter reading to create: $meterReadingDTO")
+
+                if (meterReadingDTO.isCumulative) {
+                    val lastMeterReadingNumber = meterReadingRepo.findAllByResource(meterReadingDTO.resource).maxBy { it.date }?.number
+                            ?: 0L
+                    meterReadingDTO.number -= lastMeterReadingNumber
+                }
+
                 val toSave = MeterReading(meterReadingDTO)
                 val meterReading = meterReadingRepo.save(toSave)
 
-                if( toSave == meterReading){
+                if (toSave == meterReading) {
                     LOGGER.info("insertMeterReading - Meter reading correctly inserted in the database with id: ${meterReading.id}")
                     ResponseEntity(HttpStatus.OK)
-                }else{
+                } else {
                     LOGGER.warn("insertMeterReading - Meter reading NOT inserted")
                     ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR)
                 }
@@ -85,11 +89,11 @@ open class HouseRestApi {
      * Insert a new price in the database
      */
     @RequestMapping(value = ["/price"], method = [(RequestMethod.POST)])
-    internal fun insertPrice(@RequestHeader(value="Authorization") authorization: String,
-                             @RequestHeader(value="User-Agent") userAgent: String,
+    internal fun insertPrice(@RequestHeader(value = "Authorization") authorization: String,
+                             @RequestHeader(value = "User-Agent") userAgent: String,
                              @RequestBody priceDTO: PriceDTO,
                              request: HttpServletRequest): ResponseEntity<HttpStatus> {
-        return when  {
+        return when {
             authorizationManager.isValid(authorization, request.remoteAddr, userAgent) -> {
                 LOGGER.info("insertPrice - Received new rate to create: $priceDTO")
                 val toSave = Price(priceDTO)
@@ -112,13 +116,13 @@ open class HouseRestApi {
      * Retrieve all the meter reading from the database
      */
     @RequestMapping(value = ["/meterReadings"], method = [(RequestMethod.GET)])
-    internal fun getAllMeterReading(@RequestHeader(value="Authorization") authorization: String,
-                                    @RequestHeader(value="User-Agent") userAgent: String,
-                                    request: HttpServletRequest): ResponseEntity<List<MeterReadingDTO>> {
+    internal fun getAllMeterReading(@RequestHeader(value = "Authorization") authorization: String,
+                                    @RequestHeader(value = "User-Agent") userAgent: String,
+                                    request: HttpServletRequest): ResponseEntity<List<MeterReadingOutDTO>> {
         return when {
             authorizationManager.isValid(authorization, request.remoteAddr, userAgent) -> {
                 LOGGER.info("getAllMeterReading - Request to retrieve all meter reading")
-                val findAll = meterReadingRepo.findAll().map { MeterReadingDTO(meterReading = it) }
+                val findAll = meterReadingRepo.findAll().map { MeterReadingOutDTO(meterReading = it) }
 
                 LOGGER.info("getAllMeterReading - Returning ${findAll.size} items")
                 ResponseEntity(findAll, HttpStatus.OK)
@@ -132,8 +136,8 @@ open class HouseRestApi {
      * Retrieve all the prices from the database
      */
     @RequestMapping(value = ["/prices"], method = [(RequestMethod.GET)])
-    internal fun getAllPrices(@RequestHeader(value="Authorization") authorization: String,
-                              @RequestHeader(value="User-Agent") userAgent: String,
+    internal fun getAllPrices(@RequestHeader(value = "Authorization") authorization: String,
+                              @RequestHeader(value = "User-Agent") userAgent: String,
                               request: HttpServletRequest): ResponseEntity<List<PriceDTO>> {
         return when {
             authorizationManager.isValid(authorization, request.remoteAddr, userAgent) -> {
@@ -152,8 +156,8 @@ open class HouseRestApi {
      * Retrieve all the meter reading from the database between two dates
      */
     @RequestMapping(value = ["/meterReadingsBetween"], method = [(RequestMethod.GET)])
-    internal fun getAllMeterReadingBetween(@RequestHeader(value="Authorization") authorization: String,
-                                           @RequestHeader(value="User-Agent") userAgent: String,
+    internal fun getAllMeterReadingBetween(@RequestHeader(value = "Authorization") authorization: String,
+                                           @RequestHeader(value = "User-Agent") userAgent: String,
                                            @RequestParam(value = "begin", required = true) begin: Date,
                                            @RequestParam(value = "end", required = true) end: Date,
                                            request: HttpServletRequest): ResponseEntity<List<MeterReading>> {
@@ -174,8 +178,8 @@ open class HouseRestApi {
      * Retrieve all the prices from the database between two dates
      */
     @RequestMapping(value = ["/pricesBetween"], method = [(RequestMethod.GET)])
-    internal fun getAllPriceBetween(@RequestHeader(value="Authorization") authorization: String,
-                                    @RequestHeader(value="User-Agent") userAgent: String,
+    internal fun getAllPriceBetween(@RequestHeader(value = "Authorization") authorization: String,
+                                    @RequestHeader(value = "User-Agent") userAgent: String,
                                     @RequestParam(value = "begin", required = true) begin: Date,
                                     @RequestParam(value = "end", required = true) end: Date,
                                     request: HttpServletRequest): ResponseEntity<List<Price>> {
@@ -193,10 +197,10 @@ open class HouseRestApi {
     }
 
     @RequestMapping(value = ["/data"], method = [RequestMethod.GET])
-    internal fun getGraphDatas( @RequestHeader(value="Authorization") authorization: String,
-                                @RequestHeader(value="User-Agent") userAgent: String,
-                                request: HttpServletRequest ): ResponseEntity<GraphData>{
-        return when{
+    internal fun getGraphDatas(@RequestHeader(value = "Authorization") authorization: String,
+                               @RequestHeader(value = "User-Agent") userAgent: String,
+                               request: HttpServletRequest): ResponseEntity<GraphData> {
+        return when {
             authorizationManager.isValid(authorization, request.remoteAddr, userAgent) -> {
                 LOGGER.info("getGraphDatas - Request to get all graph data")
                 val allMeterReading = meterReadingRepo.findAll()
@@ -217,12 +221,12 @@ open class HouseRestApi {
     }
 
     @RequestMapping(value = ["/dataBetween"], method = [RequestMethod.GET])
-    internal fun getGraphDatasBetween( @RequestHeader(value="Authorization") authorization: String,
-                                       @RequestHeader(value="User-Agent") userAgent: String,
-                                       @RequestParam(value = "begin", required = true) begin: Date,
-                                       @RequestParam(value = "end", required = true) end: Date,
-                                       request: HttpServletRequest): ResponseEntity<GraphData>{
-        return when{
+    internal fun getGraphDatasBetween(@RequestHeader(value = "Authorization") authorization: String,
+                                      @RequestHeader(value = "User-Agent") userAgent: String,
+                                      @RequestParam(value = "begin", required = true) begin: Date,
+                                      @RequestParam(value = "end", required = true) end: Date,
+                                      request: HttpServletRequest): ResponseEntity<GraphData> {
+        return when {
             authorizationManager.isValid(authorization, request.remoteAddr, userAgent) -> {
                 LOGGER.info("getGraphDatasBetween - Request to get all graph data")
                 val allMeterReading = meterReadingRepo.findAll()
@@ -243,11 +247,11 @@ open class HouseRestApi {
     }
 
     @RequestMapping(value = ["/dataForMonth"], method = [RequestMethod.GET])
-    internal fun getGraphDatasForMonth( @RequestHeader(value="Authorization") authorization: String,
-                                        @RequestHeader(value="User-Agent") userAgent: String,
-                                        @RequestParam(value = "month", required = true) month: String,
-                                        request: HttpServletRequest): ResponseEntity<GraphData>{
-        return when{
+    internal fun getGraphDatasForMonth(@RequestHeader(value = "Authorization") authorization: String,
+                                       @RequestHeader(value = "User-Agent") userAgent: String,
+                                       @RequestParam(value = "month", required = true) month: String,
+                                       request: HttpServletRequest): ResponseEntity<GraphData> {
+        return when {
             authorizationManager.isValid(authorization, request.remoteAddr, userAgent) -> {
                 LOGGER.info("getGraphDatasForMonth - Request to get all graph data")
                 val allMeterReading = meterReadingRepo.findAll()
@@ -255,7 +259,7 @@ open class HouseRestApi {
 
                 val graphData = GraphData()
 
-                allMeterReading.filter { fromDateToPreviousMonthName(it) == month }.forEach {
+                allMeterReading.filter { fromDateToPreviousMonthYear(it) == month }.forEach {
                     addMeterReadingToGraph(it, allResourcePrice, graphData)
                 }
 
@@ -275,28 +279,38 @@ open class HouseRestApi {
         return mrLD.isBefore(endLD) && mrLD.isAfter(beginLD)
     }
 
-
     private fun addMeterReadingToGraph(meterReading: MeterReading, allResourcePrice: MutableList<Price>, graphData: GraphData) {
-        val month = fromDateToPreviousMonthName(meterReading)
+        val month = fromDateToPreviousMonthYear(meterReading)
         val money = allResourcePrice
                 .filter { price -> price.resource == meterReading.resource && price.date.before(meterReading.date) }
                 .maxBy { price -> price.date }?.number ?: 1L
 
         val mapForResource = graphData.data[meterReading.resource]
 
-        if(mapForResource?.get(month) != null){
-            mapForResource[month]?.add(meterReading.number.toString())
-            mapForResource[month]?.add((money * meterReading.number).toString())
-        }else{
+        if (mapForResource?.get(month) != null) {
+            if (mapForResource[month]?.size == 2) {
+                val previousValue = mapForResource[month]?.get(0)?.toLong() ?: 0L
+                val previousPrice = mapForResource[month]?.get(1)?.toLong() ?: 0L
+                mapForResource[month]?.clear()
+                mapForResource[month]?.add((meterReading.number + previousValue).toString())
+                mapForResource[month]?.add((money * meterReading.number + previousPrice).toString())
+            } else {
+                mapForResource[month]?.add(meterReading.number.toString())
+                mapForResource[month]?.add((money * meterReading.number).toString())
+            }
+        } else {
             mapForResource?.put(month, mutableListOf(meterReading.number.toString(), (money * meterReading.number).toString()))
         }
     }
 
-    private fun fromDateToPreviousMonthName(meterReading: MeterReading) =
-            LocalDateTime.ofInstant(meterReading.date.toInstant(), ZoneId.systemDefault()).minusMonths(1).month.getDisplayName(TextStyle.FULL, Locale.FRANCE)
+    private fun fromDateToPreviousMonthYear(meterReading: MeterReading): String {
+        val minusMonths = LocalDateTime.ofInstant(meterReading.date.toInstant(), ZoneId.systemDefault())
+        return datePattern.format(minusMonths)
+    }
 
     companion object {
         val LOGGER: Logger = LoggerFactory.getLogger("HouseApi")
+        val datePattern: DateTimeFormatter = DateTimeFormatter.ofPattern("MM-yyyy")
 
         @JvmStatic
         fun main(args: Array<String>) {
