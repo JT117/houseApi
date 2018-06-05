@@ -21,6 +21,7 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.servlet.http.HttpServletRequest
 
+@CrossOrigin
 @RestController
 @EnableAutoConfiguration
 @SpringBootApplication
@@ -45,8 +46,10 @@ open class HouseRestApi {
         val hash = authorizationManager.login(authorizationDTO.username, authorizationDTO.password, request.remoteAddr, userAgent)
 
         return if (hash != null) {
+            LOGGER.info("authenticate - Login successful")
             ResponseEntity(hash, HttpStatus.OK)
         } else {
+            LOGGER.info("authenticate - Login failed")
             ResponseEntity(HttpStatus.NOT_FOUND)
         }
     }
@@ -259,7 +262,7 @@ open class HouseRestApi {
 
                 val graphData = GraphData()
 
-                allMeterReading.filter { fromDateToPreviousMonthYear(it) == month }.forEach {
+                allMeterReading.filter { fromDateToMonthYear(it) == month }.forEach {
                     addMeterReadingToGraph(it, allResourcePrice, graphData)
                 }
 
@@ -280,33 +283,24 @@ open class HouseRestApi {
     }
 
     private fun addMeterReadingToGraph(meterReading: MeterReading, allResourcePrice: MutableList<Price>, graphData: GraphData) {
-        val month = fromDateToPreviousMonthYear(meterReading)
-        val money = allResourcePrice
+        val month = fromDateToMonthYear(meterReading)
+        val money = (allResourcePrice
                 .filter { price -> price.resource == meterReading.resource && price.date.before(meterReading.date) }
-                .maxBy { price -> price.date }?.number ?: 1L
+                .maxBy { price -> price.date }?.forConso(meterReading.number) ?: 1L)
 
-        val mapForResource = graphData.data[meterReading.resource]
+        val mapForMonth = graphData.data[month]
 
-        if (mapForResource?.get(month) != null) {
-            if (mapForResource[month]?.size == 2) {
-                val previousValue = mapForResource[month]?.get(0)?.toLong() ?: 0L
-                val previousPrice = mapForResource[month]?.get(1)?.toLong() ?: 0L
-                mapForResource[month]?.clear()
-                mapForResource[month]?.add((meterReading.number + previousValue).toString())
-                mapForResource[month]?.add((money * meterReading.number + previousPrice).toString())
-            } else {
-                mapForResource[month]?.add(meterReading.number.toString())
-                mapForResource[month]?.add((money * meterReading.number).toString())
-            }
+        if (mapForMonth == null) {
+            graphData.data[month] = mutableListOf(GraphDataEntry(price = money, resource = meterReading.resource, amount = meterReading.number))
         } else {
-            mapForResource?.put(month, mutableListOf(meterReading.number.toString(), (money * meterReading.number).toString()))
+            val alreadyExistingResource = mapForMonth.firstOrNull { it.resource == meterReading.resource }
+
+            alreadyExistingResource?.add(meterReading.number, money)
+                    ?: mapForMonth.add(GraphDataEntry(price = money, resource = meterReading.resource, amount = meterReading.number))
         }
     }
 
-    private fun fromDateToPreviousMonthYear(meterReading: MeterReading): String {
-        val minusMonths = LocalDateTime.ofInstant(meterReading.date.toInstant(), ZoneId.systemDefault())
-        return datePattern.format(minusMonths)
-    }
+    private fun fromDateToMonthYear(meterReading: MeterReading): String = datePattern.format(LocalDateTime.ofInstant(meterReading.date.toInstant(), ZoneId.systemDefault()))
 
     companion object {
         val LOGGER: Logger = LoggerFactory.getLogger("HouseApi")

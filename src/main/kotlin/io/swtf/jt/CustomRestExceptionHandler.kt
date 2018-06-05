@@ -1,5 +1,7 @@
 package io.swtf.jt
 
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.ConversionNotSupportedException
 import org.springframework.beans.TypeMismatchException
 import org.springframework.http.HttpHeaders
@@ -25,35 +27,85 @@ import java.lang.Exception
 
 @ControllerAdvice
 open class CustomRestExceptionHandler : ResponseEntityExceptionHandler() {
-    override fun handleBindException(ex: BindException?, headers: HttpHeaders?, status: HttpStatus?, request: WebRequest?): ResponseEntity<Any> = ResponseEntity(HttpStatus.NOT_FOUND)
 
-    override fun handleHttpMessageNotReadable(ex: HttpMessageNotReadableException?, headers: HttpHeaders?, status: HttpStatus?, request: WebRequest?): ResponseEntity<Any> = ResponseEntity(HttpStatus.NOT_FOUND)
+    companion object {
+        val LOGGER: Logger = LoggerFactory.getLogger("CustomRestExceptionHandler")
+    }
 
-    override fun handleMissingServletRequestParameter(ex: MissingServletRequestParameterException?, headers: HttpHeaders?, status: HttpStatus?, request: WebRequest?): ResponseEntity<Any> = ResponseEntity(HttpStatus.NOT_FOUND)
+    override fun handleBindException(ex: BindException?, headers: HttpHeaders?, status: HttpStatus?, request: WebRequest?): ResponseEntity<Any> {
+        LOGGER.warn("Exception occurred : ${ex?.message}")
+        return ResponseEntity(HttpStatus.NOT_FOUND)
+    }
 
-    override fun handleMissingPathVariable(ex: MissingPathVariableException?, headers: HttpHeaders?, status: HttpStatus?, request: WebRequest?): ResponseEntity<Any> = ResponseEntity(HttpStatus.NOT_FOUND)
+    override fun handleHttpMessageNotReadable(ex: HttpMessageNotReadableException?, headers: HttpHeaders?, status: HttpStatus?, request: WebRequest?): ResponseEntity<Any> {
+        LOGGER.warn("Exception occurred : ${ex?.message}")
+        return ResponseEntity(HttpStatus.NOT_FOUND)
+    }
 
-    override fun handleMethodArgumentNotValid(ex: MethodArgumentNotValidException?, headers: HttpHeaders?, status: HttpStatus?, request: WebRequest?): ResponseEntity<Any> = ResponseEntity(HttpStatus.NOT_FOUND)
+    override fun handleMissingServletRequestParameter(ex: MissingServletRequestParameterException?, headers: HttpHeaders?, status: HttpStatus?, request: WebRequest?): ResponseEntity<Any> {
+        LOGGER.warn("Exception occurred : ${ex?.message}")
+        return ResponseEntity(HttpStatus.NOT_FOUND)
+    }
+
+    override fun handleMissingPathVariable(ex: MissingPathVariableException?, headers: HttpHeaders?, status: HttpStatus?, request: WebRequest?): ResponseEntity<Any> {
+        LOGGER.warn("Exception occurred : ${ex?.message}")
+        return ResponseEntity(HttpStatus.NOT_FOUND)
+    }
+
+    override fun handleMethodArgumentNotValid(ex: MethodArgumentNotValidException?, headers: HttpHeaders?, status: HttpStatus?, request: WebRequest?): ResponseEntity<Any> {
+        LOGGER.warn("Exception occurred : ${ex?.message}")
+        return ResponseEntity(HttpStatus.NOT_FOUND)
+    }
 
     override fun handleExceptionInternal(ex: Exception?, body: Any?, headers: HttpHeaders?, status: HttpStatus?, request: WebRequest?): ResponseEntity<Any> = ResponseEntity(HttpStatus.NOT_FOUND)
 
-    override fun handleServletRequestBindingException(ex: ServletRequestBindingException?, headers: HttpHeaders?, status: HttpStatus?, request: WebRequest?): ResponseEntity<Any> = ResponseEntity(HttpStatus.NOT_FOUND)
+    override fun handleServletRequestBindingException(ex: ServletRequestBindingException?, headers: HttpHeaders?, status: HttpStatus?, request: WebRequest?): ResponseEntity<Any> {
+        LOGGER.warn("Exception occurred : ${ex?.message}")
+        return ResponseEntity(HttpStatus.NOT_FOUND)
+    }
 
-    override fun handleHttpMediaTypeNotSupported(ex: HttpMediaTypeNotSupportedException?, headers: HttpHeaders?, status: HttpStatus?, request: WebRequest?): ResponseEntity<Any> = ResponseEntity(HttpStatus.NOT_FOUND)
+    override fun handleHttpMediaTypeNotSupported(ex: HttpMediaTypeNotSupportedException?, headers: HttpHeaders?, status: HttpStatus?, request: WebRequest?): ResponseEntity<Any> {
+        LOGGER.warn("Exception occurred : ${ex?.message}")
+        return ResponseEntity(HttpStatus.NOT_FOUND)
+    }
 
-    override fun handleNoHandlerFoundException(ex: NoHandlerFoundException?, headers: HttpHeaders?, status: HttpStatus?, request: WebRequest?): ResponseEntity<Any> = ResponseEntity(HttpStatus.NOT_FOUND)
+    override fun handleNoHandlerFoundException(ex: NoHandlerFoundException?, headers: HttpHeaders?, status: HttpStatus?, request: WebRequest?): ResponseEntity<Any> {
+        LOGGER.warn("Exception occurred : ${ex?.message}")
+        return ResponseEntity(HttpStatus.NOT_FOUND)
+    }
 
-    override fun handleHttpMediaTypeNotAcceptable(ex: HttpMediaTypeNotAcceptableException?, headers: HttpHeaders?, status: HttpStatus?, request: WebRequest?): ResponseEntity<Any> = ResponseEntity(HttpStatus.NOT_FOUND)
+    override fun handleHttpMediaTypeNotAcceptable(ex: HttpMediaTypeNotAcceptableException?, headers: HttpHeaders?, status: HttpStatus?, request: WebRequest?): ResponseEntity<Any> {
+        LOGGER.warn("Exception occurred : ${ex?.message}")
+        return ResponseEntity(HttpStatus.NOT_FOUND)
+    }
 
-    override fun handleHttpRequestMethodNotSupported(ex: HttpRequestMethodNotSupportedException?, headers: HttpHeaders?, status: HttpStatus?, request: WebRequest?): ResponseEntity<Any> = ResponseEntity(HttpStatus.NOT_FOUND)
+    override fun handleHttpRequestMethodNotSupported(ex: HttpRequestMethodNotSupportedException?, headers: HttpHeaders?, status: HttpStatus?, request: WebRequest?): ResponseEntity<Any> {
+        LOGGER.warn("Exception occurred : ${ex?.message}")
+        return ResponseEntity(HttpStatus.NOT_FOUND)
+    }
 
-    override fun handleMissingServletRequestPart(ex: MissingServletRequestPartException?, headers: HttpHeaders?, status: HttpStatus?, request: WebRequest?): ResponseEntity<Any> = ResponseEntity(HttpStatus.NOT_FOUND)
+    override fun handleMissingServletRequestPart(ex: MissingServletRequestPartException?, headers: HttpHeaders?, status: HttpStatus?, request: WebRequest?): ResponseEntity<Any> {
+        LOGGER.warn("Exception occurred : ${ex?.message}")
+        return ResponseEntity(HttpStatus.NOT_FOUND)
+    }
 
-    override fun handleAsyncRequestTimeoutException(ex: AsyncRequestTimeoutException?, headers: HttpHeaders?, status: HttpStatus?, webRequest: WebRequest?): ResponseEntity<Any> = ResponseEntity(HttpStatus.NOT_FOUND)
+    override fun handleAsyncRequestTimeoutException(ex: AsyncRequestTimeoutException?, headers: HttpHeaders?, status: HttpStatus?, webRequest: WebRequest?): ResponseEntity<Any> {
+        LOGGER.warn("Exception occurred : ${ex?.message}")
+        return ResponseEntity(HttpStatus.NOT_FOUND)
+    }
 
-    override fun handleConversionNotSupported(ex: ConversionNotSupportedException?, headers: HttpHeaders?, status: HttpStatus?, request: WebRequest?): ResponseEntity<Any> = ResponseEntity(HttpStatus.NOT_FOUND)
+    override fun handleConversionNotSupported(ex: ConversionNotSupportedException?, headers: HttpHeaders?, status: HttpStatus?, request: WebRequest?): ResponseEntity<Any> {
+        LOGGER.warn("Exception occurred : ${ex?.message}")
+        return ResponseEntity(HttpStatus.NOT_FOUND)
+    }
 
-    override fun handleTypeMismatch(ex: TypeMismatchException?, headers: HttpHeaders?, status: HttpStatus?, request: WebRequest?): ResponseEntity<Any> = ResponseEntity(HttpStatus.NOT_FOUND)
+    override fun handleTypeMismatch(ex: TypeMismatchException?, headers: HttpHeaders?, status: HttpStatus?, request: WebRequest?): ResponseEntity<Any> {
+        LOGGER.warn("Exception occurred : ${ex?.message}")
+        return ResponseEntity(HttpStatus.NOT_FOUND)
+    }
 
-    override fun handleHttpMessageNotWritable(ex: HttpMessageNotWritableException?, headers: HttpHeaders?, status: HttpStatus?, request: WebRequest?): ResponseEntity<Any> = ResponseEntity(HttpStatus.NOT_FOUND)
+    override fun handleHttpMessageNotWritable(ex: HttpMessageNotWritableException?, headers: HttpHeaders?, status: HttpStatus?, request: WebRequest?): ResponseEntity<Any> {
+        LOGGER.warn("Exception occurred : ${ex?.message}")
+        return ResponseEntity(HttpStatus.NOT_FOUND)
+    }
 }

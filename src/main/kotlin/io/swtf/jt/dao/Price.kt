@@ -13,9 +13,12 @@ data class Price(
         val resource: Resource,
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
         val date: Date,
-        val number: Long
+        val price: Long,
+        val fixedRate: Long
 ) {
-    constructor(proceDTO: PriceDTO) : this(id = UUID.randomUUID().toString(), resource = proceDTO.resource, date = proceDTO.date, number = proceDTO.number)
+    constructor(priceDTO: PriceDTO) : this(id = UUID.randomUUID().toString(), resource = priceDTO.resource, date = priceDTO.date, price = priceDTO.price, fixedRate = priceDTO.fixedRate)
+
+    fun forConso(consomation: Long): Long = consomation * price + fixedRate
 }
 
 interface PriceRepo : MongoRepository<Price, String> {
